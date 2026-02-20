@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+out/
+
+# Environment files — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Evidence store runtime data (NDJSON files generated at runtime)
+packages/evidence-store/data/*.ndjson
+
+# OS / editor artefacts
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/settings.json
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Vitest coverage reports (generated, not committed)
+coverage/

@@ -1,0 +1,12 @@
+branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$branch" = "main" ]; then
+  echo ""
+  echo "  ✗ Direct push to 'main' is not allowed."
+  echo "    Create a feature branch and open a pull request instead:"
+  echo ""
+  echo "    git switch -c feature/my-change"
+  echo "    git push -u origin feature/my-change"
+  echo ""
+  exit 1
+fi

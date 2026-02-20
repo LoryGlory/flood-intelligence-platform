@@ -1,0 +1,16 @@
+# Build outputs
+**/dist/
+**/.next/
+**/out/
+
+# Dependencies
+**/node_modules/
+
+# Generated / lock files
+pnpm-lock.yaml
+
+# Test snapshots
+**/__snapshots__/
+
+# Evidence store data (NDJSON — not code)
+packages/evidence-store/data/
