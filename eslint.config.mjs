@@ -17,7 +17,7 @@ export default tseslint.config(
   // where full project context is available.
   // ------------------------------------------------------------------
   {
-    files: ["packages/*/src/**/*.ts", "packages/*/tests/**/*.ts"],
+    files: ["packages/*/src/**/*.ts", "packages/*/tests/**/*.ts", "packages/*/vitest.config.ts"],
     extends: [tseslint.configs.recommended, prettierConfig],
     rules: {
       // Enforce _ prefix convention for intentionally unused params
