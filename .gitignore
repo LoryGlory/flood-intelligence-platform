@@ -25,5 +25,11 @@ packages/evidence-store/data/*.ndjson
 # TypeScript incremental build cache
 *.tsbuildinfo
 
+# Compiled test outputs (tests run via Vitest directly, no pre-compilation needed)
+packages/*/tests/*.js
+packages/*/tests/*.js.map
+packages/*/tests/*.d.ts
+packages/*/tests/*.d.ts.map
+
 # Vitest coverage reports (generated, not committed)
 coverage/

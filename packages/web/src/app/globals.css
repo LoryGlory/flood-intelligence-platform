@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal custom additions — Tailwind handles the rest */
+html {
+  font-size: 15px;
+}
