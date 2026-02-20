@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  # Also run on direct pushes to main (e.g. after a squash-merge)
+  # so the badge stays green and history is verified.
+  push:
+    branches: [main]
+
+concurrency:
+  # Cancel in-flight runs for the same PR/branch when a new commit is pushed.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Typecheck · Lint · Format · Test · Sonar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        # fetch-depth: 0 gives SonarCloud the full git history it needs
+        # to compute new-code metrics and blame annotations correctly.
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        # --ignore-scripts: skip all lifecycle scripts (Husky, postinstalls).
+        # esbuild ships prebuilt binaries via optionalDependencies so it does
+        # not require its postinstall script to run on supported platforms.
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      # Build all packages in dependency order.
+      # Required before typecheck/lint/test because workspace packages
+      # import each other via their compiled dist/ outputs.
+      - name: Build packages
+        run: pnpm build
+
+      # -----------------------------------------------------------------
+      # Quality gates — all must pass; failures show clearly in the PR UI
+      # -----------------------------------------------------------------
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        # Prettier check (read-only — no writes in CI, just verify)
+        run: pnpm format:check
+
+      - name: Test with coverage
+        # Runs vitest --coverage in each package; produces lcov.info files
+        # consumed by the SonarCloud step below.
+        run: pnpm test:coverage
+
+      # -----------------------------------------------------------------
+      # SonarCloud scan — runs after tests so coverage data is available.
+      # Requires SONAR_TOKEN secret in repo settings.
+      # See sonar-project.properties for project configuration.
+      # -----------------------------------------------------------------
+      - name: SonarCloud scan
+        uses: SonarSource/sonarcloud-github-action@ba3875ecf642b2129de2b589510c81a8b53dbf4e # master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
