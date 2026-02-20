@@ -39,12 +39,10 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        # HUSKY=0 skips the prepare script (git hooks not needed in CI).
-        # onlyBuiltDependencies: [esbuild] in pnpm-workspace.yaml already
-        # restricts lifecycle scripts to esbuild only.
-        run: pnpm install --frozen-lockfile
-        env:
-          HUSKY: "0"
+        # --ignore-scripts: skip all lifecycle scripts (Husky, postinstalls).
+        # esbuild ships prebuilt binaries via optionalDependencies so it does
+        # not require its postinstall script to run on supported platforms.
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       # Build all packages in dependency order.
       # Required before typecheck/lint/test because workspace packages
