@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm build",
+  "buildCommand": "pnpm --filter @flood/core build && pnpm --filter @flood/ingestion build && pnpm --filter @flood/risk-engine build && pnpm --filter @flood/evidence-store build && pnpm --filter @flood/llm-agent build && pnpm --filter @flood/web build",
   "outputDirectory": "packages/web/.next",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
