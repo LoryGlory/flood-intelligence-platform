@@ -23,9 +23,11 @@ import { computeRiskAssessment } from "@flood/risk-engine";
 import { JsonEvidenceStore, EvidenceRetrieval } from "@flood/evidence-store";
 import { FloodExplanationAgent, StubLLMProvider, AnthropicProvider } from "@flood/llm-agent";
 
-// Singleton store — persists across hot-reloads in dev via module cache.
-// In production, use a proper singleton pattern or DB connection pool.
-const DATA_DIR = join(process.cwd(), "..", "evidence-store", "data");
+// EVIDENCE_DATA_DIR lets operators control where NDJSON files are written.
+// On Vercel, set it to /tmp/evidence-data (only writable path in serverless).
+// Defaults to the local evidence-store/data directory for dev.
+const DATA_DIR =
+  process.env.EVIDENCE_DATA_DIR ?? join(process.cwd(), "..", "evidence-store", "data");
 const store = new JsonEvidenceStore(DATA_DIR);
 const retrieval = new EvidenceRetrieval(store);
 const llm = process.env.ANTHROPIC_API_KEY ? new AnthropicProvider() : new StubLLMProvider();

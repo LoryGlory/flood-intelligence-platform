@@ -120,6 +120,31 @@ Then in the browser:
 > and precipitation forecasts from [Open-Meteo](https://open-meteo.com/). Both
 > are free and require no API key.
 
+### Run with Docker
+
+```bash
+# Build and start (set ANTHROPIC_API_KEY to enable the real LLM)
+ANTHROPIC_API_KEY=sk-ant-... docker compose up --build
+
+# Or without a key (uses StubLLMProvider)
+docker compose up --build
+# → http://localhost:3000
+```
+
+### Deploy to Vercel
+
+The repo includes a `vercel.json` that configures the pnpm monorepo build. In
+the Vercel project settings, leave **Root Directory** blank (monorepo root).
+
+Add your API key as an environment variable:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+No other configuration is needed — Vercel picks up the Next.js app
+automatically.
+
 ---
 
 ## Run tests
