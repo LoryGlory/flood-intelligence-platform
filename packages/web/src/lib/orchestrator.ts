@@ -21,19 +21,14 @@ import type { FloodExplanation } from "@flood/core";
 import { MockGaugeAdapter, MockWeatherAdapter } from "@flood/ingestion";
 import { computeRiskAssessment } from "@flood/risk-engine";
 import { JsonEvidenceStore, EvidenceRetrieval } from "@flood/evidence-store";
-import { FloodExplanationAgent, StubLLMProvider } from "@flood/llm-agent";
-
-// TODO: wire AnthropicProvider when ANTHROPIC_API_KEY is set.
-// const llm = process.env.ANTHROPIC_API_KEY
-//   ? new AnthropicProvider()
-//   : new StubLLMProvider();
+import { FloodExplanationAgent, StubLLMProvider, AnthropicProvider } from "@flood/llm-agent";
 
 // Singleton store — persists across hot-reloads in dev via module cache.
 // In production, use a proper singleton pattern or DB connection pool.
 const DATA_DIR = join(process.cwd(), "..", "evidence-store", "data");
 const store = new JsonEvidenceStore(DATA_DIR);
 const retrieval = new EvidenceRetrieval(store);
-const llm = new StubLLMProvider();
+const llm = process.env.ANTHROPIC_API_KEY ? new AnthropicProvider() : new StubLLMProvider();
 
 export async function runAssessment(stationId: string): Promise<FloodExplanation> {
   const station = STATIONS[stationId];
