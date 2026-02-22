@@ -111,8 +111,15 @@ export function StationSelect({ stations, value, onChange }: Props) {
                 key={s.id}
                 role="option"
                 aria-selected={isSelected}
+                tabIndex={0}
                 onClick={() => select(s.id)}
-                className={`flex items-start justify-between gap-3 px-3 py-3 cursor-pointer transition-colors ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    select(s.id);
+                  }
+                }}
+                className={`flex items-start justify-between gap-3 px-3 py-3 cursor-pointer transition-colors focus:outline-none focus:bg-blue-50 ${
                   isSelected ? "bg-blue-50" : "hover:bg-slate-50"
                 }`}
               >
