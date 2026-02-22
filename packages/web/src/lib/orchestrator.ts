@@ -23,9 +23,11 @@ import { computeRiskAssessment } from "@flood/risk-engine";
 import { JsonEvidenceStore, EvidenceRetrieval } from "@flood/evidence-store";
 import { FloodExplanationAgent, StubLLMProvider, AnthropicProvider } from "@flood/llm-agent";
 
-// Singleton store — persists across hot-reloads in dev via module cache.
-// In production, use a proper singleton pattern or DB connection pool.
-const DATA_DIR = join(process.cwd(), "..", "evidence-store", "data");
+// Vercel's serverless filesystem is read-only; only /tmp is writable.
+// Fall back to /tmp so appendGauge / appendForecast don't throw EROFS.
+const DATA_DIR = process.env.VERCEL
+  ? "/tmp/evidence-data"
+  : join(process.cwd(), "..", "evidence-store", "data");
 const store = new JsonEvidenceStore(DATA_DIR);
 const retrieval = new EvidenceRetrieval(store);
 const llm = process.env.ANTHROPIC_API_KEY ? new AnthropicProvider() : new StubLLMProvider();
