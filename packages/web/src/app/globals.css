@@ -2,7 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Minimal custom additions — Tailwind handles the rest */
-html {
-  font-size: 15px;
+@layer base {
+  html {
+    font-size: 15px;
+  }
+
+  body {
+    font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  }
+
+  .font-mono,
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono, ui-monospace, monospace);
+  }
 }
