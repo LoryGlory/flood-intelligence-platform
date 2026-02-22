@@ -23,12 +23,12 @@ LLM explanation → dashboard UI**.
 ```
 flood-intelligence-platform/
 ├── packages/
-│   ├── core/           @flood/core       — shared types, interfaces, constants
-│   ├── ingestion/      @flood/ingestion   — mock gauge + weather adapters (swap-ready)
-│   ├── risk-engine/    @flood/risk-engine — rule-based scorer + signal emitters
+│   ├── core/           @flood/core          — shared types, interfaces, constants
+│   ├── ingestion/      @flood/ingestion      — PegelOnline + Open-Meteo live adapters
+│   ├── risk-engine/    @flood/risk-engine    — rule-based scorer + signal emitters
 │   ├── evidence-store/ @flood/evidence-store — NDJSON store + RAG retrieval layer
-│   ├── llm-agent/      @flood/llm-agent  — prompt builder, provider interface, guardrails
-│   └── web/            @flood/web        — Next.js dashboard + API routes
+│   ├── llm-agent/      @flood/llm-agent      — prompt builder, provider interface, guardrails
+│   └── web/            @flood/web            — Next.js dashboard + API routes
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
 ```
@@ -36,39 +36,37 @@ flood-intelligence-platform/
 ### Data flow (one request)
 
 ```
-GET /api/seed  (once, or on demand)
+POST /api/assess  stationId
+       │
+       ├──► PegelOnlineAdapter   — live WSV gauge data (last 24 h, 15-min intervals)
+       ├──► OpenMeteoAdapter     — live precipitation forecast (72 h ahead)
+       │         │
+       │         ▼
+       │    JsonEvidenceStore (NDJSON) ◄── readings + forecast appended
        │
        ▼
-MockGaugeAdapter ──┐
-MockWeatherAdapter ─┤──► JsonEvidenceStore (NDJSON)
-                   │
-       ▼           │
-POST /api/assess   │
-  stationId ───────┤
-                   │
-       ▼           │
 computeRiskAssessment()    (rule-based, weighted)
   - scoreGaugeLevel()      (45%)
   - scoreGaugeTrend()      (25%)
   - scoreForecast()        (30%)
        │
        ▼
-RiskAssessment { score 0–100, riskLevel, signals[] }
+RiskAssessment { score 0–100, riskLevel, signals[] }  ◄── appended to store
        │
        ▼
-EvidenceRetrieval.retrieve()   (RAG: recency-ranked)
+EvidenceRetrieval.retrieve()   (RAG: recency-ranked, top-8)
        │
        ▼
 FloodExplanationAgent.explain()
   - buildUserPrompt()          (structured, evidence-grounded)
-  - llm.complete()             (StubLLMProvider / AnthropicProvider)
+  - llm.complete()             (AnthropicProvider if key set, else StubLLMProvider)
   - validateLLMOutput()        (guardrails: JSON schema, safety notice, hallucination heuristic)
        │
        ▼
 FloodExplanation { riskScore, summary, keySignals[], evidence[], uncertainty, safetyNotice }
        │
        ▼
-React Dashboard   (RiskBadge, SignalList, EvidenceList, SafetyBanner)
+React Dashboard   (RiskBadge, SignalList, EvidenceList, SafetyBanner, StationSelect)
 ```
 
 ---
@@ -111,10 +109,12 @@ Then in the browser:
 
 1. Select a station (Trier, Cochem, or Bernkastel-Kues)
 2. Click **Run Assessment**
-3. The full pipeline runs: ingest → score → explain → render
+3. The full pipeline runs: fetch live data → score → explain → render
 
-> On first run the evidence store seeds itself automatically via the assessment
-> API. You can also seed explicitly: `GET http://localhost:3000/api/seed`
+> Live gauge data is fetched from the
+> [WSV PegelOnline API](https://www.pegelonline.wsv.de/webservices/rest-api/v2/)
+> and precipitation forecasts from [Open-Meteo](https://open-meteo.com/). Both
+> are free and require no API key.
 
 ---
 
@@ -128,59 +128,49 @@ pnpm test:agent        # @flood/llm-agent only (guardrail + agent tests)
 
 ### What's tested
 
-| Package              | Tests | What                                                                                                                                                |
-| -------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@flood/risk-engine` | 23    | `scoreGaugeLevel`, `scoreGaugeTrend`, `scoreForecast`, `computeRiskAssessment` — monotonicity, thresholds, signal codes, determinism                |
-| `@flood/llm-agent`   | 16    | Guardrails (JSON parse, required fields, safety notice, missing fields), agent fallback on LLM error, hallucination heuristic, evidence passthrough |
+| Package              | Tests | What                                                                                                                                                               |
+| -------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@flood/risk-engine` | 23    | `scoreGaugeLevel`, `scoreGaugeTrend`, `scoreForecast`, `computeRiskAssessment` — monotonicity, thresholds, signal codes, determinism                               |
+| `@flood/llm-agent`   | 26    | Guardrails (JSON parse, required fields, safety notice, missing fields), agent fallback on LLM error, hallucination heuristic, evidence passthrough, LLM providers |
 
 ---
 
 ## Activating a real LLM
 
-### Anthropic (Claude)
+### Anthropic (Claude) — recommended
 
-```bash
-pnpm add @anthropic-ai/sdk --filter @flood/llm-agent
-```
+The orchestrator automatically uses `AnthropicProvider` (claude-sonnet-4-6) when
+`ANTHROPIC_API_KEY` is present, and falls back to `StubLLMProvider` otherwise.
 
-Then uncomment the implementation in
-[packages/llm-agent/src/providers/anthropic.ts](packages/llm-agent/src/providers/anthropic.ts)
-and update the orchestrator:
-
-```ts
-// packages/web/src/lib/orchestrator.ts
-import { AnthropicProvider } from "@flood/llm-agent";
-
-const llm = process.env.ANTHROPIC_API_KEY
-  ? new AnthropicProvider()
-  : new StubLLMProvider();
-```
-
-Set `ANTHROPIC_API_KEY` in `packages/web/.env.local`:
+Create `packages/web/.env.local`:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
+No code changes needed — the key is the only requirement.
+
 ### OpenAI
 
-Same pattern — uncomment the `OpenAIProvider` skeleton in `anthropic.ts` and
-install `openai`.
+Install the SDK and implement the `OpenAIProvider` skeleton in
+[packages/llm-agent/src/providers/openai.ts](packages/llm-agent/src/providers/openai.ts),
+then update the orchestrator to use it.
 
 ---
 
-## Real data ingestion (TODOs)
+## Data sources
 
-Each mock adapter has a clear swap boundary:
+| Adapter              | Source                                                                                          | Notes                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `PegelOnlineAdapter` | [pegelonline.wsv.de REST API](https://www.pegelonline.wsv.de/webservices/rest-api/v2/) (no key) | 15-min gauge readings, last 24 h, cm → m  |
+| `OpenMeteoAdapter`   | [open-meteo.com](https://open-meteo.com/) (no key)                                              | Hourly precipitation mm/h, 72 h forecast  |
+| `JsonEvidenceStore`  | Local NDJSON files                                                                              | Swap boundary: `IEvidenceStore` interface |
 
-| Mock                 | Real replacement      | Public source                                                                                   |
-| -------------------- | --------------------- | ----------------------------------------------------------------------------------------------- |
-| `MockGaugeAdapter`   | `PegelOnlineAdapter`  | [pegelonline.wsv.de REST API](https://www.pegelonline.wsv.de/webservices/rest-api/v2/) (no key) |
-| `MockWeatherAdapter` | `DWDOpenDataAdapter`  | [opendata.dwd.de](https://opendata.dwd.de/) or [Open-Meteo](https://open-meteo.com/) (no key)   |
-| `JsonEvidenceStore`  | `SQLiteEvidenceStore` | `better-sqlite3` for single-node; TimescaleDB for scale                                         |
+Station → PegelOnline shortname mapping: `trier → TRIER UP`, `cochem → COCHEM`,
+`bernkastel → ZELTINGEN UP`.
 
 The `GaugeAdapter` and `WeatherAdapter` interfaces in `@flood/ingestion` are the
-swap boundary — no downstream code changes.
+swap boundary — replacing an adapter requires no downstream code changes.
 
 ---
 
@@ -221,12 +211,13 @@ interface is the replacement boundary for SQLite or a time-series DB. NDJSON is
 appropriate for MVP and dev; it is not appropriate for concurrent writes or high
 volume.
 
-### Why a stub LLM for MVP?
+### Why a stub LLM fallback?
 
 - No API key needed to run the full vertical slice
 - Deterministic output means tests don't flake
-- The `LLMProvider` interface means swapping to Claude/GPT is a one-line change
-  in the orchestrator
+- The `LLMProvider` interface means the active provider is a single line in the
+  orchestrator — `AnthropicProvider` activates automatically when an API key is
+  present
 
 ### Guardrails design
 
@@ -246,8 +237,9 @@ The agent output goes through `validateLLMOutput()` before it reaches the UI:
 
 - **Decision-support only.** Never use this system as the sole basis for
   evacuation or emergency decisions.
-- **Mock data.** The MVP uses synthetic sensor data. Readings do not reflect
-  real current conditions.
+- **Live data, not official warnings.** Gauge readings come from the WSV
+  PegelOnline API and forecasts from Open-Meteo. Data accuracy depends on
+  upstream sensor availability and forecast model quality.
 - **No catchment model.** Soil saturation, snowmelt, and upstream conditions are
   not modelled.
 - **Forecast uncertainty.** Rainfall forecasts beyond 48 h carry significant
