@@ -1,6 +1,7 @@
 <div align="center">
   <img src="assets/logo.svg" alt="Mosel Flood Risk Intelligence logo" width="80" height="80" />
   <h1>Mosel Flood Risk Intelligence &amp; Explanation System</h1>
+  <p>by <a href="https://www.linkedin.com/in/laura-roganovic">Laura Roganovic</a></p>
 </div>
 
 [![CI](https://github.com/LoryGlory/flood-intelligence-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/LoryGlory/flood-intelligence-platform/actions/workflows/ci.yml)
