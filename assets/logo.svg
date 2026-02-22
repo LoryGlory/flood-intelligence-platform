@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="dropGrad" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1E40AF" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Droplet body -->
+  <path
+    d="M60 7C60 7 19 50 19 78C19 103.4 37.6 114 60 114C82.4 114 101 103.4 101 78C101 50 60 7 60 7Z"
+    fill="url(#dropGrad)"
+    filter="url(#shadow)"
+  />
+
+  <!-- Wave detail -->
+  <path
+    d="M30 84Q39.5 74 49 84Q58.5 94 68 84Q77.5 74 89 80"
+    stroke="white"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+    opacity="0.8"
+  />
+</svg>

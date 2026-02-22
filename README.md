@@ -1,4 +1,7 @@
-# Mosel Flood Risk Intelligence & Explanation System
+<div align="center">
+  <img src="assets/logo.svg" alt="Mosel Flood Risk Intelligence logo" width="80" height="80" />
+  <h1>Mosel Flood Risk Intelligence &amp; Explanation System</h1>
+</div>
 
 [![CI](https://github.com/LoryGlory/flood-intelligence-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/LoryGlory/flood-intelligence-platform/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=loryglory_flood-intelligence-platform&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=loryglory_flood-intelligence-platform)
