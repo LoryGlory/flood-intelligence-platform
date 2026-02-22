@@ -20,13 +20,14 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@flood/core": "workspace:*",
     "@flood/evidence-store": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.4.5",
-    "vitest": "^1.6.0",
     "@types/node": "^20.14.10",
-    "@vitest/coverage-v8": "^1.6.0"
+    "@vitest/coverage-v8": "^1.6.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
   }
 }
