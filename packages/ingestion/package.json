@@ -20,6 +20,7 @@
     "@flood/core": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "^20.19.33",
     "typescript": "^5.4.5"
   }
 }
