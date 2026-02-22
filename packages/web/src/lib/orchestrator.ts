@@ -5,8 +5,8 @@
  * this is the composition root for the server-side pipeline.
  *
  * Pipeline:
- *   fetch gauge readings (MockGaugeAdapter)
- *     → fetch forecast (MockWeatherAdapter)
+ *   fetch gauge readings (PegelOnlineAdapter — live WSV data)
+ *     → fetch forecast (OpenMeteoAdapter — live Open-Meteo data)
  *     → store evidence (JsonEvidenceStore)
  *     → compute risk (RiskScorer)
  *     → store assessment as evidence
@@ -18,7 +18,7 @@
 import { join } from "node:path";
 import { STATIONS } from "@flood/core";
 import type { FloodExplanation } from "@flood/core";
-import { MockGaugeAdapter, MockWeatherAdapter } from "@flood/ingestion";
+import { PegelOnlineAdapter, OpenMeteoAdapter } from "@flood/ingestion";
 import { computeRiskAssessment } from "@flood/risk-engine";
 import { JsonEvidenceStore, EvidenceRetrieval } from "@flood/evidence-store";
 import { FloodExplanationAgent, StubLLMProvider, AnthropicProvider } from "@flood/llm-agent";
@@ -39,8 +39,8 @@ export async function runAssessment(stationId: string): Promise<FloodExplanation
   }
 
   // --- Ingestion ---
-  const gaugeAdapter = new MockGaugeAdapter();
-  const weatherAdapter = new MockWeatherAdapter();
+  const gaugeAdapter = new PegelOnlineAdapter();
+  const weatherAdapter = new OpenMeteoAdapter();
 
   const [readings, forecast] = await Promise.all([
     gaugeAdapter.fetchLatest(stationId, 24),
