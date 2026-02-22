@@ -4,6 +4,7 @@
   <p>by <a href="https://www.linkedin.com/in/laura-roganovic">Laura Roganovic</a></p>
 </div>
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-flood--intelligence--platform-blue?logo=vercel&logoColor=white)](https://flood-intelligence-platform-web.vercel.app/)
 [![CI](https://github.com/LoryGlory/flood-intelligence-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/LoryGlory/flood-intelligence-platform/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=loryglory_flood-intelligence-platform&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=loryglory_flood-intelligence-platform)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=loryglory_flood-intelligence-platform&metric=coverage)](https://sonarcloud.io/summary/new_code?id=loryglory_flood-intelligence-platform)
