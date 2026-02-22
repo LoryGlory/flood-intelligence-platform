@@ -45,7 +45,7 @@ function CheckIcon() {
   );
 }
 
-export function StationConfigSelect({ stations, value, onChange }: Props) {
+export function StationSelect({ stations, value, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const selected = stations.find((s) => s.id === value) ?? stations[0];
@@ -78,7 +78,7 @@ export function StationConfigSelect({ stations, value, onChange }: Props) {
   return (
     <div ref={containerRef} className="relative flex-1 min-w-48">
       <p className="text-xs font-medium text-slate-500 mb-1.5" id="station-label">
-        StationConfig
+        Station
       </p>
 
       {/* Trigger */}
